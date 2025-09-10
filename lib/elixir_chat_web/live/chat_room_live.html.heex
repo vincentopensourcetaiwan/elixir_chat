@@ -1,0 +1,106 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="container mx-auto py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <!-- Chat Header -->
+      <div class="bg-blue-600 text-white px-6 py-4">
+        <h1 class="text-2xl font-bold">Chat Room: <%= @room %></h1>
+        <p class="text-blue-100">Real-time messaging</p>
+      </div>
+
+      <!-- Username Setup -->
+      <%= if @username == "" do %>
+        <div class="p-6 bg-yellow-50 border-b">
+          <h2 class="text-lg font-semibold mb-4">Enter your username to start chatting</h2>
+          <form phx-submit="set_username" class="flex gap-2">
+            <input
+              type="text"
+              name="username"
+              placeholder="Your username..."
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Join Chat
+            </button>
+          </form>
+        </div>
+      <% end %>
+
+      <!-- Messages Container -->
+      <div class="h-96 overflow-y-auto p-6 space-y-4" id="messages-container">
+        <%= for message <- @messages do %>
+          <div class="flex items-start space-x-3">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                <%= String.first(message.username) |> String.upcase() %>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-2">
+                <p class="text-sm font-semibold text-gray-900"><%= message.username %></p>
+                <p class="text-xs text-gray-500">
+                  <%= Calendar.strftime(message.inserted_at, "%H:%M") %>
+                </p>
+              </div>
+              <p class="text-sm text-gray-700 mt-1"><%= message.content %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Message Input -->
+      <%= if @username != "" do %>
+        <div class="border-t px-6 py-4">
+          <.form
+            for={@changeset}
+            phx-submit="send_message"
+            class="flex gap-2"
+          >
+            <input
+              name="message[content]"
+              type="text"
+              placeholder="Type your message..."
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              Send
+            </button>
+          </.form>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Room Navigation -->
+    <div class="mt-6 text-center">
+      <p class="text-gray-600 mb-4">Join other rooms:</p>
+      <div class="flex flex-wrap justify-center gap-2">
+        <%= for room_name <- ["general", "random", "tech", "gaming"] do %>
+          <.link
+            navigate={~p"/chat/#{room_name}"}
+            class={[
+              "px-3 py-1 rounded-full text-sm",
+              if(@room == room_name, do: "bg-blue-600 text-white", else: "bg-gray-200 text-gray-700 hover:bg-gray-300")
+            ]}
+          >
+            #<%= room_name %>
+          </.link>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('phx:update', () => {
+    const container = document.getElementById('messages-container');
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+</script>
