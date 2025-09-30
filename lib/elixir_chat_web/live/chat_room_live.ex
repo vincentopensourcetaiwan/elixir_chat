@@ -47,6 +47,10 @@ defmodule ElixirChatWeb.ChatRoomLive do
           
           # Clear the form immediately for better UX
           changeset = Message.changeset(%Message{}, %{})
+          
+          # Push a JavaScript event to clear the input
+          socket = push_event(socket, "clear_form", %{})
+          
           {:noreply, assign(socket, changeset: changeset)}
 
         {:error, changeset} ->
