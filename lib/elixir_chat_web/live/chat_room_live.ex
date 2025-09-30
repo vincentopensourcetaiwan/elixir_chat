@@ -42,7 +42,10 @@ defmodule ElixirChatWeb.ChatRoomLive do
         room: room
       }) do
         {:ok, message} ->
+          # Broadcast to all subscribers (including this one)
           Chat.broadcast_message(message, room)
+          
+          # Clear the form immediately for better UX
           changeset = Message.changeset(%Message{}, %{})
           {:noreply, assign(socket, changeset: changeset)}
 
@@ -56,7 +59,24 @@ defmodule ElixirChatWeb.ChatRoomLive do
 
   @impl true
   def handle_info({:new_message, message}, socket) do
-    messages = [message | socket.assigns.messages]
-    {:noreply, assign(socket, :messages, messages)}
+    # Check if message is for this room and not already in the list
+    if message.room == socket.assigns.room do
+      # Check if message already exists to prevent duplicates
+      existing_ids = Enum.map(socket.assigns.messages, & &1.id)
+      
+      if message.id not in existing_ids do
+        # Add new message to the end of the list (newest at bottom for display)
+        messages = socket.assigns.messages ++ [message]
+        
+        # Trigger a client-side event for auto-scroll
+        socket = push_event(socket, "new_message", %{})
+        
+        {:noreply, assign(socket, :messages, messages)}
+      else
+        {:noreply, socket}
+      end
+    else
+      {:noreply, socket}
+    end
   end
 end

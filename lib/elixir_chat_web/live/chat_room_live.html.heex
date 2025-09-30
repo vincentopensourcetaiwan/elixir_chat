@@ -80,7 +80,7 @@
     <div class="mt-6 text-center">
       <p class="text-gray-600 mb-4">Join other rooms:</p>
       <div class="flex flex-wrap justify-center gap-2">
-        <%= for room_name <- ["general", "random", "tech", "gaming"] do %>
+        <%= for room_name <- ["general"] do %>
           <.link
             navigate={~p"/chat/#{room_name}"}
             class={[
@@ -101,6 +101,16 @@
     const container = document.getElementById('messages-container');
     if (container) {
       container.scrollTop = container.scrollHeight;
+    }
+  });
+  
+  // Auto-scroll on new messages
+  window.addEventListener('phx:new_message', () => {
+    const container = document.getElementById('messages-container');
+    if (container) {
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 10);
     }
   });
 </script>
